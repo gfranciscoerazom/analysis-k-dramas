@@ -6,25 +6,25 @@ import numpy as np
 class MissingData:
     def __init__(self, df: pd.DataFrame):
         self.df: pd.DataFrame = df
-        self.num_of_rows: int = df.shape[0]
-        self.num_of_columns: int = df.shape[1]
-
         self.is_na_df: pd.DataFrame = df.isna()
 
-        self.count_na_per_column: pd.Series = self.is_na_df.sum(axis=0) #
-        self.count_na_per_row: pd.Series = self.is_na_df.sum(axis=1) #
+        self.count_na_per_column: pd.Series = self.is_na_df.sum(axis=0)
+        self.count_na_per_row: pd.Series = self.is_na_df.sum(axis=1)
 
-        self.count_na_per_column_percentage: pd.Series = self.count_na_per_column / self.df.shape[0] * 100 #
-        self.count_na_per_row_percentage: pd.Series = self.count_na_per_row / self.df.shape[1] * 100 #
+        self.count_na_per_column_percentage: pd.Series = self.count_na_per_column / self.df.shape[0] * 100
+        self.count_na_per_row_percentage: pd.Series = self.count_na_per_row / self.df.shape[1] * 100
 
-        self.total_count_na: int = self.count_na_per_column.sum() #
-        self.total_count_not_na: int = self.df.size - self.total_count_na #
+        self.total_count_na: int = self.count_na_per_column.sum()
+        self.total_count_not_na: int = self.df.size - self.total_count_na
 
-        self.total_count_na_percentage: float = self.total_count_na / self.df.size * 100 #
-        self.total_count_not_na_percentage: float = self.total_count_not_na / self.df.size * 100 #
+        self.total_count_na_percentage: float = self.total_count_na / self.df.size * 100
+        self.total_count_not_na_percentage: float = self.total_count_not_na / self.df.size * 100
+
+        self.columns_with_na = self.count_na_per_column[self.count_na_per_column > 0].index
+        self.columns_without_na = self.count_na_per_column[self.count_na_per_column == 0].index
 
 
-    def na_count_and_percentage_df(self, axis: str = "column") -> pd.DataFrame:
+    def na_count_and_percentage_per(self, axis: str = "column") -> pd.DataFrame:
         if axis == "column":
             return pd.DataFrame({
                 "count": self.count_na_per_column,
@@ -52,33 +52,33 @@ class MissingData:
         if axis == "column":
             return pd.DataFrame({
                 "count": self.coincidence_count_na_per(axis="column"),
-                "percentage": self.coincidence_count_na_per(axis="column") / self.num_of_columns * 100
+                "percentage": self.coincidence_count_na_per(axis="column") / self.df.shape[1] * 100
             })
         elif axis == "row":
             return pd.DataFrame({
                 "count": self.coincidence_count_na_per(axis="row"),
-                "percentage": self.coincidence_count_na_per(axis="row") / self.num_of_rows * 100
+                "percentage": self.coincidence_count_na_per(axis="row") / self.df.shape[0] * 100
             })
         else:
             raise ValueError("axis must be either 'column' or 'row'")
 
 
     def na_count_by_intervals(self, interval: int, column: str) -> pd.DataFrame:
-        intervals_df: pd.DataFrame = self.df.assign(groupby_number=lambda df: np.repeat(np.arange(self.df.shape[0]), interval)[:self.df.shape[0]]).groupby("groupby_number").aggregate(size_of_interval=(column, "size"), count_na=(column, lambda inter: inter.isna().sum()))
+        intervals_df: pd.DataFrame = self.df.assign(groupby_number=lambda df: np.repeat(np.arange(self.df.shape[0]), interval)[:self.df.shape[0]]).groupby("groupby_number").aggregate(size_of_interval=(column, "size"), count_of_na=(column, lambda inter: inter.isna().sum()))
         intervals_df = intervals_df.assign(
-            count_of_not_na=lambda df: df["size_of_interval"] - df["count_na"],
-            percentage_of_not_na=lambda df: df["count_of_not_na"] / df["size_of_interval"] * 100,
-            percentage_of_na=lambda df: df["count_na"] / df["size_of_interval"] * 100
+            count_of_not_na=lambda df: df["size_of_interval"] - df["count_of_na"],
+            percentage_of_na=lambda df: df["count_of_na"] / df["size_of_interval"] * 100,
+            percentage_of_not_na=lambda df: df["count_of_not_na"] / df["size_of_interval"] * 100
         ).drop(columns=["size_of_interval"])
         return intervals_df
 
 
     def na_count_by_bins(self, bins: int, column: str) -> pd.DataFrame:
-        intervals_df: pd.DataFrame = self.df.assign(groupby_number=lambda df: pd.cut(np.arange(self.df.shape[0]), bins=bins, labels=False)[:self.df.shape[0]]).groupby("groupby_number").aggregate(size_of_interval=(column, "size"), count_na=(column, lambda inter: inter.isna().sum()))
+        intervals_df: pd.DataFrame = self.df.assign(groupby_number=lambda df: pd.cut(np.arange(self.df.shape[0]), bins=bins, labels=False)[:self.df.shape[0]]).groupby("groupby_number").aggregate(size_of_interval=(column, "size"), count_of_na=(column, lambda inter: inter.isna().sum()))
         intervals_df = intervals_df.assign(
-            count_of_not_na=lambda df: df["size_of_interval"] - df["count_na"],
-            percentage_of_not_na=lambda df: df["count_of_not_na"] / df["size_of_interval"] * 100,
-            percentage_of_na=lambda df: df["count_na"] / df["size_of_interval"] * 100
+            count_of_not_na=lambda df: df["size_of_interval"] - df["count_of_na"],
+            percentage_of_na=lambda df: df["count_of_na"] / df["size_of_interval"] * 100,
+            percentage_of_not_na=lambda df: df["count_of_not_na"] / df["size_of_interval"] * 100
         ).drop(columns=["size_of_interval"])
         return intervals_df
 
