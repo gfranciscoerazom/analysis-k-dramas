@@ -1,6 +1,8 @@
 import itertools
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 @pd.api.extensions.register_dataframe_accessor("missing_data")
 class MissingData:
@@ -96,3 +98,40 @@ class MissingData:
                 True: 'na'
             })
         )
+
+
+    def plot_of_na_count_per_column(self) -> None:
+            df_to_plot = self.count_na_per_column.sort_values()
+            plt.hlines(
+                y=df_to_plot.index,
+                xmin=0,
+                xmax=df_to_plot.values,
+                color="black"
+            )
+            plt.plot(
+                df_to_plot.values,
+                df_to_plot.index,
+                "o",
+                color="black"
+            )
+            plt.xlabel("Count of na")
+            plt.ylabel("Column")
+            plt.title("Count na per column")
+            plt.grid(axis="x")
+            plt.show()
+
+
+    def histplot_of_na_count_per_row(self) -> None:
+        df_to_plot = self.count_na_per_row
+
+        sns.histplot(
+            df_to_plot,
+            binwidth=1,
+            color="black"
+        )
+
+        plt.xlabel("Count of na")
+        plt.ylabel("Count of rows")
+        plt.title("Count na per row")
+        plt.grid(axis="y")
+        plt.show()
