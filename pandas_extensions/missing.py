@@ -135,3 +135,24 @@ class MissingData:
         plt.title("Count na per row")
         plt.grid(axis="y")
         plt.show()
+
+
+    def percentage_of_not_na_vs_percentage_of_na_plot(self, interval: int, column: str, rot: int=0, figsize=None) -> None:
+        df_to_plot = self.na_count_by_intervals(interval, column)
+
+        df_to_plot.plot.barh(
+            y=["percentage_of_not_na", "percentage_of_na"],
+            stacked=True,
+            width=1,
+            color=["black", "gray"],
+            rot=rot,
+            figsize=figsize
+        )
+
+        plt.xlabel("Interval")
+        plt.ylabel("Count of na")
+        plt.title("Count na by intervals")
+        plt.grid(axis="x")
+        plt.margins(0)
+        plt.tight_layout(pad=0)
+        plt.show()
