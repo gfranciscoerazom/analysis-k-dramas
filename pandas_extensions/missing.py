@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import upsetplot
 
 @pd.api.extensions.register_dataframe_accessor("missing_data")
 class MissingData:
@@ -156,3 +157,15 @@ class MissingData:
         plt.margins(0)
         plt.tight_layout(pad=0)
         plt.show()
+
+
+    def upsetplot(self, variable: list[str] = None, **kwargs):
+        if variable is None:
+            variable = self.columns_with_na.to_list()
+
+        df_to_plot = self.is_na_df.value_counts(variable)
+
+        return upsetplot.plot(
+            df_to_plot,
+            **kwargs
+        )
