@@ -5,6 +5,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import upsetplot
 
+try:
+    del pd.DataFrame.missing_data
+except AttributeError:
+    pass
+
 @pd.api.extensions.register_dataframe_accessor("missing_data")
 class MissingData:
     def __init__(self, df: pd.DataFrame):
