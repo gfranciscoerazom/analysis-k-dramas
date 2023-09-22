@@ -106,6 +106,14 @@ class MissingData:
         )
 
 
+    def columns_sorted_by_na_count(self, ascending: bool = True) -> pd.Index:
+        return self.count_na_per_column.sort_values(ascending=ascending).index
+
+
+    def df_sorted_by_na_count(self, ascending: bool = True) -> pd.DataFrame:
+        return self.df[self.columns_sorted_by_na_count(ascending=ascending)]
+
+
     def plot_of_na_count_per_column(self) -> None:
             df_to_plot = self.count_na_per_column.sort_values()
             plt.hlines(
