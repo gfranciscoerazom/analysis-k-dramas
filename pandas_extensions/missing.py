@@ -28,8 +28,8 @@ class MissingData:
         self.total_count_na_percentage: float = self.total_count_na / self.df.size * 100
         self.total_count_not_na_percentage: float = self.total_count_not_na / self.df.size * 100
 
-        self.columns_with_na = self.count_na_per_column[self.count_na_per_column > 0].index
-        self.columns_without_na = self.count_na_per_column[self.count_na_per_column == 0].index
+        self.columns_with_na: pd.Index = self.count_na_per_column[self.count_na_per_column > 0].index
+        self.columns_without_na: pd.Index = self.count_na_per_column[self.count_na_per_column == 0].index
 
 
     def na_count_and_percentage_per(self, axis: str = "column") -> pd.DataFrame:
@@ -181,4 +181,80 @@ class MissingData:
         return upsetplot.plot(
             df_to_plot,
             **kwargs
+        )
+
+
+@pd.api.extensions.register_dataframe_accessor("shadow_matrix")
+class ShadowMatrix:
+    def __init__(self, df: pd.DataFrame):
+        self.df: pd.DataFrame = df
+        self.is_na_df: pd.DataFrame = df.isna()
+
+        self.count_na_per_column: pd.Series = df.missing_data.count_na_per_column
+        self.count_na_per_row: pd.Series = df.missing_data.count_na_per_row
+
+        self.count_na_per_column_percentage: pd.Series = df.missing_data.count_na_per_column_percentage
+        self.count_na_per_row_percentage: pd.Series = df.missing_data.count_na_per_row_percentage
+
+        self.total_count_na: int = df.missing_data.total_count_na
+        self.total_count_not_na: int = df.missing_data.total_count_not_na
+
+        self.total_count_na_percentage: float = df.missing_data.total_count_na_percentage
+        self.total_count_not_na_percentage: float = df.missing_data.total_count_not_na_percentage
+
+        self.columns_with_na: pd.Index = df.missing_data.columns_with_na
+        self.columns_without_na: pd.Index = df.missing_data.columns_without_na
+
+
+    def _shadow_matrix(self,
+        true_str: str = "na",
+        false_str: str = "not_na",
+        only_columns_with_na: bool = True
+    ) -> pd.DataFrame:
+        if only_columns_with_na:
+            columns = self.columns_with_na
+        else:
+            columns = self.df.columns
+
+        return self.is_na_df[columns].replace({
+            True: true_str,
+            False: false_str
+        }).add_suffix(f"_{true_str}")
+
+
+    def df_with_shadow_matrix(self,
+        true_str: str = "na",
+        false_str: str = "not_na",
+        only_columns_with_na: bool = True
+    ) -> pd.DataFrame:
+        return pd.concat(
+            objs=[
+                self.df,
+                self._shadow_matrix(
+                    true_str=true_str,
+                    false_str=false_str,
+                    only_columns_with_na=only_columns_with_na
+                )
+            ],
+            axis=1
+        )
+
+
+    def describe_with_shadow_matrix(self,
+        groupby: str,
+        column: str,
+        true_str: str = "na",
+        false_str: str = "not_na",
+        only_columns_with_na: bool = True,
+    ) -> pd.DataFrame:
+        return (
+            self.df_with_shadow_matrix(
+                true_str=true_str,
+                false_str=false_str,
+                only_columns_with_na=only_columns_with_na
+            )
+            .groupby(by=[groupby])
+            [column]
+            .describe()
+            .reset_index()
         )
