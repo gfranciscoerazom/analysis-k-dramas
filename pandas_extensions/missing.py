@@ -276,3 +276,23 @@ class ShadowMatrix:
             x=x,
             hue=hue,
         )
+
+
+    def boxenplot(self,
+        x: str,
+        y: str,
+        true_str: str = "na",
+        false_str: str = "not_na",
+        only_columns_with_na: bool = True,
+        **kwargs
+    ) -> None:
+        sns.boxenplot(
+            data=self.df_with_shadow_matrix(
+                true_str=true_str,
+                false_str=false_str,
+                only_columns_with_na=only_columns_with_na
+            ),
+            x=x,
+            y=y,
+            **kwargs
+        )
