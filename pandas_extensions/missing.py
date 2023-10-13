@@ -258,3 +258,21 @@ class ShadowMatrix:
             .describe()
             .reset_index()
         )
+
+
+    def plot_with_shadow_matrix(self,
+        x: str,
+        hue: str,
+        true_str: str = "na",
+        false_str: str = "not_na",
+        only_columns_with_na: bool = True,
+    ) -> None:
+        sns.kdeplot(
+            data=self.df_with_shadow_matrix(
+                true_str=true_str,
+                false_str=false_str,
+                only_columns_with_na=only_columns_with_na
+            ),
+            x=x,
+            hue=hue,
+        )
